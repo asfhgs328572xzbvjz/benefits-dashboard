@@ -1,6 +1,6 @@
 // Service worker for the public (static) dashboard: works offline with the last downloaded data.
 // App files: cache-first (refreshed in the background). Data files: network-first, cache as fallback.
-const CACHE = 'benefits-202611242202';
+const CACHE = 'benefits-202611242203';
 const SHELL = ['./', 'index.html', 'app.js', 'styles.css', 'manifest.webmanifest', 'icon-192.png'];
 
 self.addEventListener('install', e => {

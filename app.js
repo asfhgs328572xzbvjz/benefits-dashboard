@@ -82,6 +82,8 @@ let STATIC = false;   // true when served as a static site (GitHub Pages) withou
 async function load() {
   let list;
   try {
+    // the API only exists on the local server (server.ps1); on the public site go straight to the static manifest
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) throw new Error('static host');
     const r = await fetch('api/sources');
     if (!r.ok) throw new Error(r.status);
     list = await r.json();
