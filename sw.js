@@ -1,10 +1,14 @@
-// Service worker for the public (static) dashboard: works offline with the last downloaded data.
-// App files: cache-first (refreshed in the background). Data files: network-first, cache as fallback.
-const CACHE = 'benefits-202611242203';
+// Service worker for the public (static) dashboard.
+// Network-first for everything: online you always get the latest published version; offline you get the last one cached.
+// publish.ps1 rewrites CACHE with a timestamp on every publish, so old caches are dropped.
+const CACHE = 'benefits-202611242205';
 const SHELL = ['./', 'index.html', 'app.js', 'styles.css', 'manifest.webmanifest', 'icon-192.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache: 'reload' bypasses the browser's HTTP cache so a new publish never re-caches stale files
+  e.waitUntil(caches.open(CACHE)
+    .then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
@@ -13,14 +17,12 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  if (url.pathname.includes('/data/')) {
-    e.respondWith(fetch(e.request).then(r => {
-      const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r;
-    }).catch(() => caches.match(e.request)));
-    return;
-  }
-  e.respondWith(caches.match(e.request).then(hit => {
-    const net = fetch(e.request).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r; });
-    return hit || net;
-  }));
+  e.respondWith(
+    fetch(e.request, { cache: 'no-cache' })            // revalidate with the server (cheap 304 when unchanged)
+      .then(r => {
+        if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+        return r;
+      })
+      .catch(() => caches.match(e.request, { ignoreSearch: true }))
+  );
 });
