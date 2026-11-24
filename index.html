@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>דשבורד הטבות</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#2a78d6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="הטבות">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <h1>דשבורד הטבות מועדונים וכרטיסי אשראי</h1>
+    <p class="sub" id="summaryLine">טוען נתונים…</p>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-view="overview" class="active">סקירה</button>
+    <button role="tab" data-view="list">כל ההטבות</button>
+    <button role="tab" data-view="chains">השוואת רשתות</button>
+    <button role="tab" data-view="sources">מקורות ועדכון</button>
+  </nav>
+</header>
+
+<main>
+  <!-- OVERVIEW -->
+  <section id="view-overview" class="view active">
+    <div class="tiles" id="clubTiles"></div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>מספר הטבות לפי סוג עסק ומועדון</h2>
+        <span class="hint">לחיצה על תא פותחת את הרשימה המסוננת</span>
+      </div>
+      <div class="heat-wrap"><table class="heat" id="heatmap"></table></div>
+      <div class="legend-seq" id="heatLegend"></div>
+    </div>
+  </section>
+
+  <!-- LIST -->
+  <section id="view-list" class="view">
+    <div class="filters">
+      <input type="search" id="q" placeholder="חיפוש: שם עסק, רשת, עיר, תיאור…" autocomplete="off">
+      <select id="fType"><option value="">כל סוגי העסקים</option></select>
+      <select id="fKind">
+        <option value="">כל סוגי ההטבות</option>
+        <option value="discount">הנחה במעמד החיוב בבית עסק</option>
+        <option value="voucher">שובר / כרטיס / הטבה לרכישה</option>
+      </select>
+      <input type="text" id="fCity" list="cities" placeholder="עיר" autocomplete="off">
+      <datalist id="cities"></datalist>
+      <select id="fSort">
+        <option value="">מיון: רלוונטיות</option>
+        <option value="pct">אחוז הנחה גבוה</option>
+        <option value="name">שם (א-ת)</option>
+        <option value="price">מחיר נמוך</option>
+      </select>
+      <button id="clearFilters" class="ghost">ניקוי</button>
+    </div>
+    <div class="chips" id="clubChips"></div>
+    <p class="count" id="resultCount"></p>
+    <div class="cards" id="cards"></div>
+    <div class="more"><button id="moreBtn" class="ghost">הצג עוד</button></div>
+  </section>
+
+  <!-- CHAINS -->
+  <section id="view-chains" class="view">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>איפה כל רשת מופיעה? (ההנחה הגבוהה ביותר שנמצאה)</h2>
+        <div class="chain-tools">
+          <select id="chainGroup"></select>
+          <input type="search" id="chainAdd" placeholder="הוסף רשת לבדיקה…">
+        </div>
+      </div>
+      <div class="heat-wrap"><table class="matrix" id="chainMatrix"></table></div>
+      <p class="hint">התאמה לפי שם בטקסט ההטבה. „✓" = נמצאה הטבה בלי אחוז מפורש. לחיצה על תא מציגה את ההטבות.</p>
+    </div>
+  </section>
+
+  <!-- SOURCES -->
+  <section id="view-sources" class="view">
+    <div class="panel">
+      <h2>מקורות הנתונים</h2>
+      <table class="srcs" id="srcTable"></table>
+      <p class="hint" id="refreshMsg"></p>
+    </div>
+    <div class="panel static-only">
+      <h2>עדכון הנתונים</h2>
+      <p>זו גרסה ציבורית של הדשבורד. הנתונים מתעדכנים כשמריצים <code>publish.ps1</code> במחשב.</p>
+    </div>
+    <div class="panel server-only">
+      <h2>עדכון ישראכרט (מוגן Cloudflare)</h2>
+      <ol class="steps">
+        <li>פתחו את <a href="https://benefits.isracard.co.il/" target="_blank" rel="noopener">benefits.isracard.co.il</a> בדפדפן (באותו מחשב שבו רץ השרת).</li>
+        <li>פתחו את הקונסול (F12 ← Console) והריצו:<br>
+          <code id="collectorCmd">fetch('http://localhost:8787/collectors/isracard.js').then(r=>r.text()).then(eval)</code></li>
+        <li>הסקריפט עובר על כל הקטגוריות (כחצי דקה), שולח את הנתונים לשרת המקומי וחוזר לדשבורד.</li>
+      </ol>
+      <p class="hint" id="isrStatus"></p>
+    </div>
+    <div class="panel">
+      <h2>הערות</h2>
+      <p>מועדון חבר: נאסף מאינדקס בתי העסק הציבורי (הנחות במעמד החיוב). ההטבות שמוצגות רק אחרי התחברות לא נכללות.<br>
+      הייטקזון: נאספים מדורי ההטבות (הנחות במעמד החיוב, שוברים ותווי קנייה, קולנוע, מופעים, אטרקציות וכו') – לא קטלוג מוצרי החשמל והבית.</p>
+    </div>
+  </section>
+</main>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="drawer-card" role="dialog" aria-modal="true">
+    <button class="close" id="drawerClose" aria-label="סגירה">✕</button>
+    <div id="drawerBody"></div>
+  </div>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
